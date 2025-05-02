@@ -18,31 +18,34 @@ def scan_barcode():
 
     last_focus_change_time = time.time()
 
-    while True:
-        ret, frame = cap.read()
-        barcodes = pyzbar.decode(frame)
-        
-        for barcode in barcodes:
-            (x, y, w, h) = barcode.sqr()
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            barcode_data = barcode.data.decode('utf-8')
-            text = f"{barcode_data})"
-            cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-            pyperclip.copy(barcode_data)
-            print(f"Barcode data: {barcode_data}")
-            sys.exit(0)
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        cv2.imshow('Barcode Scanner', frame)
-        key = cv2.waitKey(1) & 0xFF
+    try:
+        while True:
+            ret, frame = cap.read()
+            barcodes = pyzbar.decode(frame)
+            
+            for barcode in barcodes:
+                (x, y, w, h) = barcode.rect
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                barcode_data = barcode.data.decode('utf-8')
+                text = f"{barcode_data})"
+                cv2.putText(frame, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                pyperclip.copy(barcode_data)
+                print(f"Barcode data: {barcode_data}")
+                sys.exit(0)
+            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            cv2.imshow('Barcode Scanner', frame)
+            key = cv2.waitKey(1) & 0xFF
 
-        if key == ord('q'):
-            break
+            if key == ord('q'):
+                break
 
-        # Check if it's time to change the focus
-        if time.time() - last_focus_change_time > 3:
-            focus_value = (focus_value + 0.5) % 1.0
-            set_focus(cap, focus_value)
-            last_focus_change_time = time.time()
+            # Check if it's time to change the focus
+            if time.time() - last_focus_change_time > 3:
+                focus_value = (focus_value + 0.5) % 1.0
+                set_focus(cap, focus_value)
+                last_focus_change_time = time.time()
+    except KeyboardInterrupt:
+        print("Exit") 
 
     cap.release()
     cv2.destroyAllWindows()
